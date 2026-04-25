@@ -1,0 +1,94 @@
+/* Animation.css */
+
+.animate-fade-in-scale {
+    animation: fadeInScale 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-logo-scale {
+    animation: logoGrowth 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-glow-pulse {
+    animation: glowPulse 2s infinite alternate ease-in-out;
+}
+
+.animate-text-fade-in {
+    animation: textFadeIn 1s ease-out 2s forwards; /* Starts at 2.0s */
+}
+
+.animate-tagline-fade-in {
+    animation: taglineFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 2.5s forwards; /* Starts at 2.5s */
+}
+
+.animate-container-fade-out {
+    animation: containerFadeOut 0.5s ease-in 3.5s forwards; /* Starts at 3.5s */
+}
+
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes logoGrowth {
+    0% {
+        transform: scale(0.5);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes glowPulse {
+    0% {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        opacity: 0.5;
+        transform: scale(0.95);
+    }
+    100% {
+        box-shadow: 0 0 60px rgba(255, 255, 255, 0.8);
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes textFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+        filter: blur(5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+@keyframes taglineFadeIn {
+    0% {
+        opacity: 0;
+        letter-spacing: 0.5em; /* Spaced out initially */
+        filter: blur(10px);
+    }
+    100% {
+        opacity: 1;
+        letter-spacing: 0.2em; /* Normal spacing */
+        filter: blur(0);
+    }
+}
+
+@keyframes containerFadeOut {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+        background-color: #000;
+    }
+}

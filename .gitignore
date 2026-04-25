@@ -1,0 +1,32 @@
+# Environment
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# Dependencies
+node_modules/
+frontend/node_modules/
+npm-debug.log*
+
+# Build
+build/
+dist/
+artifacts/
+cache/
+
+# Hardhat
+coverage/
+typechain/
+typechain-types/
+
+# Frontend build
+frontend/dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store

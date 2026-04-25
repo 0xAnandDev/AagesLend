@@ -1,0 +1,170 @@
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/roboto-mono/400.css';
+@import '@fontsource/roboto-mono/500.css';
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap');
+
+
+
+* {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* Typography Hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    letter-spacing: -0.02em;
+  }
+
+  h1 { font-size: 48px; }
+  h2 { font-size: 32px; }
+  h3 { font-size: 24px; }
+  
+  p, span, div {
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Data and numbers */
+  .font-mono, code, pre {
+    font-family: 'Roboto Mono', monospace;
+  }
+}
+
+@layer components {
+  /* Buttons */
+  button, .btn {
+    transition: all 0.2s ease;
+    border-radius: 9999px; /* Pill */
+  }
+
+  button:hover, .btn:hover {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+    box-shadow: 0 0 15px rgba(255,255,255,0.05);
+  }
+
+  .btn-primary {
+    background-color: #ffffff;
+    color: #000000;
+    font-weight: 500;
+    border-radius: 9999px;
+  }
+
+  .btn-secondary {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    color: #ffffff;
+    font-weight: 500;
+    border-radius: 9999px;
+  }
+
+  /* Dropdowns */
+  select, .dropdown {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    padding: 10px 14px;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    animation: fadeInSlideDown 0.2s ease-out forwards;
+  }
+
+  .dropdown-item {
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+  }
+
+  .dropdown-item:hover {
+    background-color: rgba(128, 128, 128, 0.1);
+    padding-left: 18px; /* Slight indent */
+  }
+
+  /* Inputs */
+  input, textarea {
+    background-color: #1a1a1a;
+    border-radius: 0.5rem; /* rounded-lg */
+    border: 1px solid #333333;
+    color: #ffffff;
+    transition: all 0.2s ease;
+    padding: 12px 16px;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #cccccc;
+    box-shadow: 0 0 12px rgba(128, 128, 128, 0.1);
+  }
+
+  /* Cards */
+  .card, .bg-\[\#1a1a1a\], .bg-\[\#121212\] {
+    background-color: #1a1a1a !important;
+    border: 1px solid #333333;
+    border-radius: 0.75rem; /* rounded-xl */
+    padding: 24px;
+    transition: all 0.2s ease;
+  }
+
+  .card:hover, .bg-\[\#1a1a1a\]:hover, .bg-\[\#121212\]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1), 0 0 20px rgba(128, 128, 128, 0.05);
+    border-color: #cccccc;
+  }
+}
+
+@layer utilities {
+  .text-primary {
+    color: #ffffff;
+  }
+
+  .text-secondary {
+    color: #cccccc;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0b0b;
+}
+::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #888a9b;
+}
+
+@keyframes fadeInSlideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

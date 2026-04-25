@@ -1,0 +1,46 @@
+{
+  "AagesLendCore": {
+    "abi": [
+      "function deposit(address token, uint256 amount) external",
+      "function borrow(address collateral, uint256 colAmount, address borrowToken, uint256 borrowAmount) external",
+      "function repay(address token, uint256 amount, address borrower) external",
+      "function withdraw(address token, uint256 amount) external",
+      "function liquidate(address borrower, address collateral) external",
+      "function borrows(address user, address token) external view returns (uint256)",
+      "function deposits(address user, address token) external view returns (uint256)",
+      "event Deposit(address indexed user, address indexed token, uint256 amount)",
+      "event Withdraw(address indexed user, address indexed token, uint256 amount)",
+      "event Borrow(address indexed user, address indexed borrowToken, uint256 borrowAmount, address indexed collateralToken, uint256 collateralAmount)"
+    ]
+  },
+  "LiquidityPool": {
+    "abi": [
+        "function getTotalLiquidity() external view returns (uint256)",
+        "function getUtilizationRate() external view returns (uint256)",
+        "function borrowFromPool(address token, uint256 amount) external",
+        "function repayToPool(address token, uint256 amount) external"
+    ]
+  },
+  "CollateralManager": {
+    "abi": [
+        "function getHealthFactor(address user, address collateral) external view returns (uint256)",
+        "function getUserCollateral(address user) external view returns (address[] memory)"
+    ]
+  },
+  "InterestRateModel": {
+    "abi": [
+        "function getBorrowRate(uint256 utilizationRate) external view returns (uint256)",
+        "function getSupplyRate(uint256 utilizationRate) external view returns (uint256)"
+    ]
+  },
+  "PriceOracle": {
+    "abi": [
+        "function getPrice(address token) external view returns (uint256)"
+    ]
+  },
+  "LiquidationEngine": {
+    "abi": [
+        "function executeLiquidation(address borrower, address colToken, uint256 repayAmount) external"
+    ]
+  }
+}
