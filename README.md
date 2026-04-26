@@ -1,5 +1,11 @@
 # AagesLend DeFi Protocol
 
+## 🚀 Live Demo
+
+[![Live App](https://img.shields.io/badge/Live-App-green?style=for-the-badge)](https://aageslend-finance.vercel.app/)
+
+> ⚠️ Note: Connect MetaMask and switch to Sepolia Testnet to use the app.
+
 A premium, highly functional decentralized lending and borrowing protocol built on Ethereum mapped logically securely using React, Hardhat, Ethers v6, and Vite.
 
 ## 1. Project Overview
@@ -50,3 +56,4 @@ Deployment bounding executions directly safely bounds limit natively ensuring va
 
 ## 7. Troubleshooting
 Verify limits cleanly tracking active Ethers v6 wrapper payloads tightly across contract executions bounds seamlessly limits natively securing state logic loops. 
+
