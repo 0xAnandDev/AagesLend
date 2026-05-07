@@ -169,14 +169,16 @@ const BorrowModal = ({ asset, onClose, collateral }) => {
               </div>
             </div>
 
-            <div className="borrow-chart-container">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <XAxis dataKey="day" hide />
-                  <Line type="monotone" dataKey="deposits" stroke="#fff" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="borrows" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
+            <div className="borrow-chart-container" style={{ height: '100px' }}>
+              {chartData && chartData.length > 0 && (
+                <ResponsiveContainer width="100%" height={100}>
+                  <LineChart data={chartData}>
+                    <XAxis dataKey="day" hide />
+                    <Line type="monotone" dataKey="deposits" stroke="#fff" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="borrows" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
 

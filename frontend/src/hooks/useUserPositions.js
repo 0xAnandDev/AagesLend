@@ -92,13 +92,10 @@ export const useUserPositions = () => {
       }
     };
 
-    // Auto Refresh every 15s
     fetchPositions();
-    const interval = setInterval(fetchPositions, 15000);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
     };
   }, [account]);
 

@@ -118,11 +118,9 @@ export const useDashboardMetrics = ({ account, provider }) => {
     };
 
     readMetrics();
-    const interval = setInterval(readMetrics, 25000);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
     };
   }, [account, provider, tokenAddresses]);
 

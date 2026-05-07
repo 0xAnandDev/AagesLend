@@ -2,13 +2,18 @@ import { ethers } from 'ethers';
 import addresses from '../utils/addresses.json';
 import contractsAbi from '../utils/abi/contracts.json';
 
-const ERC20_ABI = [
-  "function symbol() external view returns (string)",
-  "function decimals() external view returns (uint8)",
-  "function balanceOf(address account) external view returns (uint256)",
-  "function allowance(address owner, address spender) external view returns (uint256)",
-  "function approve(address spender, uint256 amount) external returns (bool)",
-  "function mint(address to, uint256 amount)"
+export const ERC20_ABI = [
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function totalSupply() view returns (uint256)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function transfer(address to, uint256 amount) returns (bool)",
+  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
+  "event Transfer(address indexed from, address indexed to, uint256 amount)",
+  "event Approval(address indexed owner, address indexed spender, uint256 amount)"
 ];
 
 const KNOWN_CONTRACTS = [
@@ -134,6 +139,14 @@ export const getMarketData = async () => {
   const provider = getProvider();
   const coreContract = new ethers.Contract(addresses.AagesLendCore, contractsAbi.AagesLendCore.abi, provider);
 
+  let latestBlock = 0;
+  try {
+    latestBlock = await provider.getBlockNumber();
+  } catch (err) {
+    console.warn("Could not fetch latest block number:", err);
+  }
+  const fromBlock = Math.max(latestBlock - 4000, 0);
+
   const markets = await Promise.all(tokens.map(async (token) => {
     // 1. Available Liquidity (Balance of AagesLendCore)
     const availableLiquidity = await getTokenBalance(token.address, addresses.AagesLendCore);
@@ -142,15 +155,39 @@ export const getMarketData = async () => {
     // 2. Global Borrows (Sum Borrow events - Sum Repay events)
     let borrows = 0;
     try {
-      const borrowFilter = coreContract.filters.Borrow(null, token.address);
-      const borrowEvents = await coreContract.queryFilter(borrowFilter);
+      const borrowFilterStr = "Borrow(address,address,uint256,address,uint256)";
+      const borrowFilter = coreContract.filters[borrowFilterStr]
+        ? coreContract.filters[borrowFilterStr](null, token.address)
+        : coreContract.filters.Borrow(null, token.address);
+
+      let borrowEvents = [];
+      try {
+        if (latestBlock > 0) {
+          borrowEvents = await coreContract.queryFilter(borrowFilter, fromBlock, latestBlock);
+        }
+      } catch (err) {
+        console.warn(`Borrow events fetch failed for ${token.symbol}`);
+      }
+
       let globalBorrowsRaw = 0n;
       for (const event of borrowEvents) {
         globalBorrowsRaw += event.args[2]; // borrowAmount
       }
 
-      const repayFilter = coreContract.filters.Repay(null, token.address);
-      const repayEvents = await coreContract.queryFilter(repayFilter);
+      const repayFilterStr = "Repay(address,address,uint256)";
+      const repayFilter = coreContract.filters[repayFilterStr]
+        ? coreContract.filters[repayFilterStr](null, token.address)
+        : coreContract.filters.Repay(null, token.address);
+
+      let repayEvents = [];
+      try {
+        if (latestBlock > 0) {
+          repayEvents = await coreContract.queryFilter(repayFilter, fromBlock, latestBlock);
+        }
+      } catch (err) {
+        console.warn(`Repay events fetch failed for ${token.symbol}`);
+      }
+
       let globalRepaysRaw = 0n;
       for (const event of repayEvents) {
         globalRepaysRaw += event.args[2]; // repayAmount
@@ -163,7 +200,7 @@ export const getMarketData = async () => {
       const decimals = await tokenContract.decimals().catch(() => 18);
       borrows = Number(ethers.formatUnits(netBorrowsRaw, decimals));
     } catch (e) {
-      console.error(`Error calculating total borrows for ${token.symbol}:`, e);
+      console.error(`Error calculating total borrows for ${token.symbol}:`, e.shortMessage || e.message);
     }
 
     // 3. Compute Totals and Utilization
@@ -197,37 +234,69 @@ export const getMarketData = async () => {
 
 export const approveAsset = async (tokenAddress, amountStr) => {
   try {
-    const signer = await getSigner();
-    
-    const network = await signer.provider.getNetwork();
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    const network = await provider.getNetwork();
+
     if (network.chainId !== 11155111n) {
-      return { success: false, reason: "Please connect to Sepolia network (chainId 11155111)" };
+      return {
+        success: false,
+        reason: "Please connect to Sepolia"
+      };
     }
 
-    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
-    const decimals = await tokenContract.decimals().catch(() => 18);
+    const coreAddress = addresses.AagesLendCore;
+
+    const tokenContract = new ethers.Contract(
+      tokenAddress,
+      ERC20_ABI,
+      signer
+    );
+
+    const decimals = await tokenContract.decimals();
     const parsedAmount = ethers.parseUnits(amountStr, decimals);
 
-    const approveTx = await tokenContract.approve(addresses.AagesLendCore, parsedAmount);
-    await approveTx.wait();
+    console.log("Approving...");
+    console.log("Token:", tokenAddress);
+    console.log("Spender:", coreAddress);
+    console.log("Amount:", parsedAmount.toString());
 
-    console.log("Approve TX Hash:", approveTx.hash);
-    return { success: true, hash: approveTx.hash };
+    // NO estimateGas
+    // NO gasLimit override
+
+    const tx = await tokenContract.approve(
+      coreAddress,
+      parsedAmount
+    );
+
+    await tx.wait();
+
+    return {
+      success: true,
+      hash: tx.hash
+    };
+
   } catch (error) {
-    console.error("Full Error:", error);
-    let reason = "Transaction failed.";
-    if (error.reason) reason = error.reason;
-    else if (error.shortMessage) reason = error.shortMessage;
-    else if (error.message) reason = error.message;
-    return { success: false, reason };
+    console.error("Approve error:", error);
+
+    return {
+      success: false,
+      reason:
+        error?.shortMessage ||
+        error?.reason ||
+        error?.message ||
+        "Approval failed"
+    };
   }
 };
 
 export const depositAsset = async (tokenAddress, amountStr) => {
   try {
-    const signer = await getSigner();
-    
-    const network = await signer.provider.getNetwork();
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    const network = await provider.getNetwork();
     if (network.chainId !== 11155111n) {
       return { success: false, reason: "Please connect to Sepolia network (chainId 11155111)" };
     }
@@ -239,6 +308,8 @@ export const depositAsset = async (tokenAddress, amountStr) => {
     }
 
     const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+    console.log("ABI Loaded for Token contract. Targeted Address:", tokenAddress);
+
     const decimals = await tokenContract.decimals().catch(() => 18);
     const parsedAmount = ethers.parseUnits(amountStr, decimals);
 
@@ -249,6 +320,8 @@ export const depositAsset = async (tokenAddress, amountStr) => {
 
     // Deposit into Core
     const coreContract = new ethers.Contract(addresses.AagesLendCore, contractsAbi.AagesLendCore.abi, signer);
+    console.log("ABI Loaded for AagesLendCore. Targeted Address:", addresses.AagesLendCore);
+
     const txDeposit = await coreContract.deposit(tokenAddress, parsedAmount);
     await txDeposit.wait();
 
@@ -269,10 +342,10 @@ export const getUserSuppliedAmount = async (userAddress, tokenAddress) => {
     const provider = getProvider();
     const coreContract = new ethers.Contract(addresses.AagesLendCore, contractsAbi.AagesLendCore.abi, provider);
     const balanceRaw = await coreContract.deposits(userAddress, tokenAddress);
-    
+
     const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
     const decimals = await tokenContract.decimals().catch(() => 18);
-    
+
     return Number(ethers.formatUnits(balanceRaw, decimals));
   } catch (err) {
     console.error("Error fetching user supplied amount:", err);
@@ -352,16 +425,18 @@ export const getMaxBorrowAmount = async (userAddress, borrowTokenPrice = 1) => {
 
 export const borrowAsset = async (tokenAddress, amountStr) => {
   try {
-    const signer = await getSigner();
-    
-    const network = await signer.provider.getNetwork();
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    const network = await provider.getNetwork();
     if (network.chainId !== 11155111n) {
       return { success: false, reason: "Please connect to Sepolia network (chainId 11155111)" };
     }
-    
+
     const userAddress = await signer.getAddress();
 
     const coreContract = new ethers.Contract(addresses.AagesLendCore, contractsAbi.AagesLendCore.abi, signer);
+    console.log("ABI Loaded for AagesLendCore. Targeted Address:", addresses.AagesLendCore);
     const tokens = getSupportedTokens();
 
     let collateralToken = null;
@@ -381,6 +456,7 @@ export const borrowAsset = async (tokenAddress, amountStr) => {
     }
 
     const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+    console.log("ABI Loaded for Token contract. Targeted Address:", tokenAddress);
     const decimals = await tokenContract.decimals().catch(() => 18);
     const parsedAmount = ethers.parseUnits(amountStr, decimals);
 

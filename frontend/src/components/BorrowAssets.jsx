@@ -50,9 +50,11 @@ const CustomTooltip = ({ active, payload }) => {
 const InteractiveChart = ({ price }) => {
     const data = useMemo(() => generateMockHistory(price), [price]);
     
+    if (!data || data.length === 0) return null;
+
     return (
-        <div className="w-full mt-4" style={{ height: 64 }}>
-            <ResponsiveContainer width="100%" height="100%">
+        <div className="w-full h-16 mt-4">
+            <ResponsiveContainer width="100%" height={64}>
                 <LineChart data={data}>
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#555', strokeWidth: 1, strokeDasharray: '3 3' }} />
                     <Line 

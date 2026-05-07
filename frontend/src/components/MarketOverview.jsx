@@ -83,24 +83,26 @@ const AssetCard = ({ symbol, name, iconColor, defaultSupplyApy, defaultBorrowApy
 
       {/* Chart */}
       <div className="h-28 w-full mb-6 relative">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData}>
-             <defs>
-               <linearGradient id={`color-${symbol}`} x1="0" y1="0" x2="0" y2="1">
-                 <stop offset="5%" stopColor={priceDiff >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0.3}/>
-                 <stop offset="95%" stopColor={priceDiff >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0}/>
-               </linearGradient>
-             </defs>
-             <Area 
-               type="monotone" 
-               dataKey="value" 
-               stroke={priceDiff >= 0 ? "#10b981" : "#ef4444"}
-               strokeWidth={2}
-               fillOpacity={1} 
-               fill={`url(#color-${symbol})`} 
-             />
-          </AreaChart>
-        </ResponsiveContainer>
+        {chartData && chartData.length > 0 && (
+          <ResponsiveContainer width="100%" height={112}>
+            <AreaChart data={chartData}>
+               <defs>
+                 <linearGradient id={`color-${symbol}`} x1="0" y1="0" x2="0" y2="1">
+                   <stop offset="5%" stopColor={priceDiff >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0.3}/>
+                   <stop offset="95%" stopColor={priceDiff >= 0 ? "#10b981" : "#ef4444"} stopOpacity={0}/>
+                 </linearGradient>
+               </defs>
+               <Area 
+                 type="monotone" 
+                 dataKey="value" 
+                 stroke={priceDiff >= 0 ? "#10b981" : "#ef4444"} 
+                 strokeWidth={2}
+                 fillOpacity={1} 
+                 fill={`url(#color-${symbol})`} 
+               />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* APY Stats */}
