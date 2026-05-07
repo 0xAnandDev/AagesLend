@@ -24,7 +24,7 @@ const getTokenFullName = (symbol) => {
 const BorrowModal = ({ asset, onClose, collateral }) => {
   const { account } = useWeb3();
   const [borrowAmount, setBorrowAmount] = useState('');
-  const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'success', 'error'
+  const [status, setStatus] = useState('idle'); // 'idle', 'borrowing', 'success', 'error'
   const [errorMessage, setErrorMessage] = useState('');
   
   // Real user data
@@ -80,7 +80,7 @@ const BorrowModal = ({ asset, onClose, collateral }) => {
   const executeBorrow = async () => {
     if (!isValid || !account) return;
     
-    setStatus('loading');
+    setStatus('borrowing');
     setErrorMessage('');
     
     const result = await borrowAsset(asset.address, borrowAmount.toString());
@@ -250,11 +250,11 @@ const BorrowModal = ({ asset, onClose, collateral }) => {
                 <div className="borrow-action-buttons">
                   <button className="borrow-btn-cancel" onClick={onClose}>Cancel</button>
                   <button 
-                    className={`borrow-btn-submit ${(!isValid || status === 'loading') ? 'disabled' : ''}`}
+                    className={`borrow-btn-submit ${(!isValid || status === 'borrowing') ? 'disabled' : ''}`}
                     onClick={executeBorrow}
-                    disabled={!isValid || status === 'loading'}
+                    disabled={!isValid || status === 'borrowing'}
                   >
-                    {status === 'loading' ? 'Processing...' : `Borrow ${asset.symbol}`}
+                    {status === 'borrowing' ? 'Borrowing...' : `Borrow ${asset.symbol}`}
                   </button>
                 </div>
               </>

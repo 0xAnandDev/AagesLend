@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { getMarketData, depositAsset } from '../services/blockchainService';
+import { getMarketData, depositAsset, approveAsset } from '../services/blockchainService';
 import { LineChart, Line, ResponsiveContainer, Tooltip } from 'recharts';
 import { useWeb3 } from '../hooks/useWeb3';
 
@@ -76,7 +76,7 @@ const DepositAssets = () => {
   // Modal & Notification State
   const [modalAsset, setModalAsset] = useState(null);
   const [depositAmount, setDepositAmount] = useState('');
-  const [depositStatus, setDepositStatus] = useState('idle'); // 'idle', 'loading'
+  const [depositStatus, setDepositStatus] = useState('idle'); // 'idle', 'approving', 'depositing'
   const [notification, setNotification] = useState(null); // { type: 'success' | 'error', message: string }
 
   useEffect(() => {
@@ -146,10 +146,19 @@ const DepositAssets = () => {
           return;
       }
       
-      setDepositStatus('loading');
+      setDepositStatus('approving');
       setNotification(null);
 
       // This call automatically triggers Metamask connection if needed
+      const approveResult = await approveAsset(modalAsset.address, depositAmount);
+      
+      if (!approveResult.success) {
+          setNotification({ type: 'error', message: `Approve declined: ${approveResult.reason}` });
+          setDepositStatus('idle');
+          return;
+      }
+
+      setDepositStatus('depositing');
       const result = await depositAsset(modalAsset.address, depositAmount);
       
       if (result.success) {
@@ -352,14 +361,14 @@ const DepositAssets = () => {
 
                   <button 
                       onClick={executeDeposit}
-                      disabled={depositStatus === 'loading'}
+                      disabled={depositStatus === 'approving' || depositStatus === 'depositing'}
                       className={`w-full font-bold py-3 px-4 rounded-lg transition-all duration-200 ${
-                          depositStatus === 'loading' 
+                          (depositStatus === 'approving' || depositStatus === 'depositing') 
                           ? 'bg-[#333] text-[#888] cursor-not-allowed' 
                           : 'bg-[#fff] hover:bg-[#ddd] text-[#000]'
                       }`}
                   >
-                      {depositStatus === 'loading' ? 'Confirming Transaction...' : `Deposit ${modalAsset.symbol}`}
+                      {depositStatus === 'approving' ? 'Approving...' : depositStatus === 'depositing' ? 'Depositing...' : `Deposit ${modalAsset.symbol}`}
                   </button>
               </div>
           </div>

@@ -264,16 +264,21 @@ const TestLab = () => {
       const contract = new ethers.Contract(tokenAddress, abi, signer);
 
       let amount;
+      let tx;
 
       if (tokenSymbol === "WETH") {
         amount = ethers.parseUnits("0.5", 18);
+        const wethAbi = ["function deposit() public payable", "function decimals() view returns (uint8)"];
+        const wethContract = new ethers.Contract(tokenAddress, wethAbi, signer);
+        
+        setTokenStates(prev => ({ ...prev, [tokenSymbol]: { ...prev[tokenSymbol], status: 'minting', error: '' } }));
+        tx = await wethContract.deposit({ value: amount });
       } else {
         amount = ethers.parseUnits("100", 18);
+        setTokenStates(prev => ({ ...prev, [tokenSymbol]: { ...prev[tokenSymbol], status: 'minting', error: '' } }));
+        tx = await contract.mint(userAddress, amount);
       }
 
-      setTokenStates(prev => ({ ...prev, [tokenSymbol]: { ...prev[tokenSymbol], status: 'minting', error: '' } }));
-
-      const tx = await contract.mint(userAddress, amount);
       await tx.wait();
 
       setTokenStates(prev => ({ ...prev, [tokenSymbol]: { ...prev[tokenSymbol], status: 'minted', error: '' } }));

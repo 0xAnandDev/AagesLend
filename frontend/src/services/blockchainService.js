@@ -7,7 +7,8 @@ const ERC20_ABI = [
   "function decimals() external view returns (uint8)",
   "function balanceOf(address account) external view returns (uint256)",
   "function allowance(address owner, address spender) external view returns (uint256)",
-  "function approve(address spender, uint256 amount) external returns (bool)"
+  "function approve(address spender, uint256 amount) external returns (bool)",
+  "function mint(address to, uint256 amount)"
 ];
 
 const KNOWN_CONTRACTS = [
@@ -194,42 +195,71 @@ export const getMarketData = async () => {
   return markets;
 };
 
+export const approveAsset = async (tokenAddress, amountStr) => {
+  try {
+    const signer = await getSigner();
+    
+    const network = await signer.provider.getNetwork();
+    if (network.chainId !== 11155111n) {
+      return { success: false, reason: "Please connect to Sepolia network (chainId 11155111)" };
+    }
+
+    const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+    const decimals = await tokenContract.decimals().catch(() => 18);
+    const parsedAmount = ethers.parseUnits(amountStr, decimals);
+
+    const approveTx = await tokenContract.approve(addresses.AagesLendCore, parsedAmount);
+    await approveTx.wait();
+
+    console.log("Approve TX Hash:", approveTx.hash);
+    return { success: true, hash: approveTx.hash };
+  } catch (error) {
+    console.error("Full Error:", error);
+    let reason = "Transaction failed.";
+    if (error.reason) reason = error.reason;
+    else if (error.shortMessage) reason = error.shortMessage;
+    else if (error.message) reason = error.message;
+    return { success: false, reason };
+  }
+};
+
 export const depositAsset = async (tokenAddress, amountStr) => {
   try {
     const signer = await getSigner();
+    
+    const network = await signer.provider.getNetwork();
+    if (network.chainId !== 11155111n) {
+      return { success: false, reason: "Please connect to Sepolia network (chainId 11155111)" };
+    }
+
+    const userAddress = await signer.getAddress();
 
     if (tokenAddress.toLowerCase() === "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee") {
       return { success: false, reason: "Native ETH is not directly supported for deposits. Please use WETH." };
     }
 
-    // Defaulting to 18 decimals, ideally we should fetch the decimals first
     const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
     const decimals = await tokenContract.decimals().catch(() => 18);
-    const amount = ethers.parseUnits(amountStr, decimals);
+    const parsedAmount = ethers.parseUnits(amountStr, decimals);
 
-    // 1. Approve Core contract
-    const txApprove = await tokenContract.approve(addresses.AagesLendCore, amount);
-    await txApprove.wait();
+    console.log("Token:", tokenAddress);
+    console.log("Amount:", amountStr);
+    console.log("Parsed:", parsedAmount.toString());
+    console.log("User:", userAddress);
 
-    // 2. Deposit into Core
+    // Deposit into Core
     const coreContract = new ethers.Contract(addresses.AagesLendCore, contractsAbi.AagesLendCore.abi, signer);
-    const txDeposit = await coreContract.deposit(tokenAddress, amount);
+    const txDeposit = await coreContract.deposit(tokenAddress, parsedAmount);
     await txDeposit.wait();
 
+    console.log("Deposit TX Hash:", txDeposit.hash);
     return { success: true, hash: txDeposit.hash };
-  } catch (err) {
-    console.error("Deposit error:", err);
-    if (err.code === 'ACTION_REJECTED' || (err.message && err.message.toLowerCase().includes('user rejected'))) {
-      return { success: false, reason: "Transaction was rejected by the user." };
-    }
+  } catch (error) {
+    console.error("Full Error:", error);
     let reason = "Transaction failed.";
-    if (err.reason) {
-      reason = err.reason;
-    } else if (err.info && err.info.error && err.info.error.message) {
-      reason = err.info.error.message;
-    } else if (err.message) {
-      reason = err.message.split('(')[0].trim();
-    }
+    if (error.reason) reason = error.reason;
+    else if (error.shortMessage) reason = error.shortMessage;
+    else if (error.message) reason = error.message;
     return { success: false, reason };
   }
 };
@@ -323,9 +353,14 @@ export const getMaxBorrowAmount = async (userAddress, borrowTokenPrice = 1) => {
 export const borrowAsset = async (tokenAddress, amountStr) => {
   try {
     const signer = await getSigner();
+    
+    const network = await signer.provider.getNetwork();
+    if (network.chainId !== 11155111n) {
+      return { success: false, reason: "Please connect to Sepolia network (chainId 11155111)" };
+    }
+    
     const userAddress = await signer.getAddress();
 
-    const provider = getProvider();
     const coreContract = new ethers.Contract(addresses.AagesLendCore, contractsAbi.AagesLendCore.abi, signer);
     const tokens = getSupportedTokens();
 
@@ -347,25 +382,25 @@ export const borrowAsset = async (tokenAddress, amountStr) => {
 
     const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
     const decimals = await tokenContract.decimals().catch(() => 18);
-    const amount = ethers.parseUnits(amountStr, decimals);
+    const parsedAmount = ethers.parseUnits(amountStr, decimals);
 
-    const txBorrow = await coreContract.borrow(collateralToken, colAmount, tokenAddress, amount);
+    console.log("Token:", tokenAddress);
+    console.log("Amount:", amountStr);
+    console.log("Parsed:", parsedAmount.toString());
+    console.log("User:", userAddress);
+
+    const txBorrow = await coreContract.borrow(collateralToken, colAmount, tokenAddress, parsedAmount);
     await txBorrow.wait();
 
+    console.log("Borrow TX Hash:", txBorrow.hash);
+
     return { success: true, hash: txBorrow.hash };
-  } catch (err) {
-    console.error("Borrow error:", err);
-    if (err.code === 'ACTION_REJECTED' || (err.message && err.message.toLowerCase().includes('user rejected'))) {
-      return { success: false, reason: "Transaction was rejected by the user." };
-    }
+  } catch (error) {
+    console.error("Full Error:", error);
     let reason = "Transaction failed.";
-    if (err.reason) {
-      reason = err.reason;
-    } else if (err.info && err.info.error && err.info.error.message) {
-      reason = err.info.error.message;
-    } else if (err.message) {
-      reason = err.message.split('(')[0].trim();
-    }
+    if (error.reason) reason = error.reason;
+    else if (error.shortMessage) reason = error.shortMessage;
+    else if (error.message) reason = error.message;
 
     if (reason.includes("Unregistered Price Feed")) {
       reason = "Price feed not configured for this asset.";
@@ -387,6 +422,7 @@ if (typeof window !== "undefined") {
   window.blockchain = {
     getTokenBalance,
     getTokenPrice,
+    approveAsset,
     depositAsset,
     borrowAsset,
     getSupportedTokens,
