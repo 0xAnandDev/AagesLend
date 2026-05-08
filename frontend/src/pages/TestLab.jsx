@@ -306,9 +306,6 @@ const TestLab = () => {
       const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
       const approveAmount = ethers.parseUnits("1000000", token.decimals);
 
-      //let gasEstimate = await tokenContract.approve.estimateGas(addresses.AagesLendCore, approveAmount).catch(() => 100000n);
-      //const txApprove = await tokenContract.approve(addresses.AagesLendCore, approveAmount, { gasLimit: gasEstimate * 120n / 100n });
-
       const txApprove = await tokenContract.approve(
         addresses.AagesLendCore,
         approveAmount
@@ -360,8 +357,7 @@ const TestLab = () => {
           const tokenContract = new ethers.Contract(token.address, ERC20_ABI, signer);
           const approveAmount = ethers.parseUnits("1000000", token.decimals);
 
-          let gasEstimate = await tokenContract.approve.estimateGas(addresses.AagesLendCore, approveAmount).catch(() => 100000n);
-          const txApprove = await tokenContract.approve(addresses.AagesLendCore, approveAmount, { gasLimit: gasEstimate * 120n / 100n });
+          const txApprove = await tokenContract.approve(addresses.AagesLendCore, approveAmount);
           await txApprove.wait();
           if (cancelFlag.current) return;
           setTokenStates(prev => ({ ...prev, [token.id]: { ...prev[token.id], status: 'approved' } }));

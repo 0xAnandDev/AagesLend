@@ -164,38 +164,7 @@ export const getUserBalance = async (tokenAddress, userAddress) => {
 };
 
 /**
- * 5. Estimate gas cost before transaction
- * @param {string} contractAddress - Contract address
- * @param {Array} contractABI - Contract ABI
- * @param {string} functionName - Function name to call
- * @param {Array} params - Array of parameters
- * @returns {Promise<string>} Gas estimate in wei as string
- */
-export const estimateGas = async (contractAddress, contractABI, functionName, params = []) => {
-  try {
-    const contract = getContractInstance(contractAddress, contractABI);
-
-    // Support both ethers v5 (contract.estimateGas.funcName) and v6 (contract.getFunction().estimateGas)
-    let estimateFunc;
-    if (contract.estimateGas && contract.estimateGas[functionName]) {
-      estimateFunc = contract.estimateGas[functionName].bind(contract.estimateGas);
-    } else if (contract.getFunction) {
-      estimateFunc = contract.getFunction(functionName).estimateGas.bind(contract.getFunction(functionName));
-    } else if (contract[functionName] && contract[functionName].estimateGas) {
-      estimateFunc = contract[functionName].estimateGas.bind(contract[functionName]);
-    }
-
-    if (!estimateFunc) throw new Error(`Could not resolve gas estimation function for ${functionName}`);
-
-    const estimate = await withTimeout(estimateFunc(...params), `Gas estimation for ${functionName}`);
-    return estimate.toString();
-  } catch (error) {
-    handleContractError(error, `estimateGas (${functionName})`);
-  }
-};
-
-/**
- * 6. Listen to real-time contract events
+ * 5. Listen to real-time contract events
  * @param {string} contractAddress - Contract address
  * @param {Array} contractABI - Contract ABI
  * @param {string} eventName - Event name to listen to
