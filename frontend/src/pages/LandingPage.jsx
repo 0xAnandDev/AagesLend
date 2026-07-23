@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiX, FiGithub, FiTwitter, FiMail } from 'react-icons/fi';
 import { FaDiscord } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import Galaxy from '../components/Galaxy/Galaxy';
+import SpecularButton from '../components/SpecularButton/SpecularButton';
 
 const LogoA = () => (
   <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
@@ -64,10 +66,21 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans selection:bg-white/10 relative overflow-x-hidden">
       {/* Background Effects */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#3333332e_1px,transparent_1px),linear-gradient(to_bottom,#3333332e_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
-        <div className="absolute top-[20%] left-[20%] w-[400px] h-[400px] bg-blue-500/5 blur-[150px] rounded-full"></div>
-        <div className="absolute top-[60%] right-[10%] w-[300px] h-[300px] bg-purple-500/5 blur-[150px] rounded-full"></div>
+      <div className="fixed inset-0 z-0">
+        <Galaxy
+          mouseInteraction={true}
+          mouseRepulsion={true}
+          density={1}
+          glowIntensity={0.2}
+          saturation={0}
+          hueShift={140}
+          twinkleIntensity={0.25}
+          rotationSpeed={0.1}
+          repulsionStrength={2}
+          autoCenterRepulsion={0}
+          starSpeed={0.5}
+          speed={1}
+        />
       </div>
 
       {/* Navbar */}
@@ -98,15 +111,26 @@ const LandingPage = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <button 
+          <SpecularButton
             onClick={() => navigate('/dashboard')}
-            className="hidden md:flex relative group px-6 py-2.5 rounded-full bg-black text-white text-[15px] font-medium border border-white/20 transition-all duration-300 hover:scale-105 hover:border-white/40 overflow-hidden shadow-[0_0_15px_rgba(255,255,255,0.03)] hover:shadow-[0_0_20px_rgba(255,255,255,0.1)]"
+            size="sm"
+            radius={999}
+            tint="#000000"
+            tintOpacity={1}
+            textColor="#ffffff"
+            lineColor="#ffffff"
+            baseColor="#a3a3a3"
+            intensity={0.9}
+            shineSize={12}
+            shineFade={45}
+            thickness={1.2}
+            speed={0.3}
+            followMouse
+            proximity={220}
+            className="hidden md:inline-flex whitespace-nowrap"
           >
-            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-            <span className="relative z-10 flex items-center gap-2">
-              Use AagesLend
-            </span>
-          </button>
+            Use AagesLend
+          </SpecularButton>
           
           <button 
             className="lg:hidden text-white p-2 hover:bg-white/5 rounded-lg transition-colors"
@@ -131,12 +155,27 @@ const LandingPage = () => {
               </button>
             ))}
           </div>
-          <button 
+          <SpecularButton
             onClick={() => navigate('/dashboard')}
-            className="mt-8 px-6 py-4 rounded-xl bg-white text-black font-bold text-center text-lg shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+            size="lg"
+            radius={16}
+            tint="#ffffff"
+            tintOpacity={1}
+            textColor="#000000"
+            lineColor="#3b82f6"
+            baseColor="#d4d4d4"
+            intensity={1}
+            shineSize={14}
+            shineFade={50}
+            thickness={1.4}
+            speed={0.3}
+            followMouse
+            autoAnimate
+            proximity={260}
+            className="mt-8 w-full whitespace-nowrap"
           >
             Use AagesLend
-          </button>
+          </SpecularButton>
         </div>
       )}
 
@@ -164,16 +203,30 @@ const LandingPage = () => {
             </p>
             
             {/* CTA Button */}
-            <button 
+            <SpecularButton
               onClick={() => navigate('/dashboard')}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-white text-black font-bold text-[18px] transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+              size="lg"
+              radius={999}
+              tint="#ffffff"
+              tintOpacity={1}
+              textColor="#000000"
+              lineColor="#3b82f6"
+              baseColor="#d4d4d4"
+              intensity={1}
+              shineSize={12}
+              shineFade={45}
+              thickness={1.3}
+              speed={0.32}
+              followMouse
+              proximity={260}
+              className="gap-2 whitespace-nowrap"
             >
-              Use AagesLend 
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+              Use AagesLend
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 inline align-middle">
                 <path d="M5 12h14"></path>
                 <path d="M12 5l7 7-7 7"></path>
               </svg>
-            </button>
+            </SpecularButton>
           </div>
         </section>
 
