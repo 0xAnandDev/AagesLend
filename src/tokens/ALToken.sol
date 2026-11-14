@@ -22,10 +22,10 @@ contract ALToken is ERC20 {
         _;
     }
 
-    constructor(address underlying_, uint8 decimals_, string memory name_, string memory symbol_)
+    constructor(address pool_, address underlying_, uint8 decimals_, string memory name_, string memory symbol_)
         ERC20(name_, symbol_)
     {
-        pool = msg.sender;
+        pool = pool_;
         underlying = underlying_;
         _decimals = decimals_;
     }

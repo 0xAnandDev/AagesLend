@@ -40,3 +40,6 @@ Thumbs.db
 
 # Patches delivered for manual apply
 .patches/
+
+# Local Anvil deployments change every run
+deployments/31337.json

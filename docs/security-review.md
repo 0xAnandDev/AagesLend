@@ -14,14 +14,15 @@ Type: internal self-review plus automated testing. **This is not a professional 
 | V1-05 | High | No interest: lenders earned 0%, debt never grew. | Fixed: kinked rate model with per-market borrow index |
 | V1-06 | Medium | Manual owner-set oracle with no staleness check. | Fixed: Chainlink with heartbeat, round completeness, bounds and sequencer checks |
 
-## 2. Findings from reviewing the new code (all fixed before release)
+## 2. Findings from reviewing the new code (all fixed before deployment)
 
 | ID | Severity | Finding | Fix |
 |---|---|---|---|
 | R-01 | Medium | **Debt forgiven while the borrower still had funds in the pool.** Bad debt was written off when the borrower had no *collateral-enabled* supply left, so a borrower who kept a deposit with collateral turned off would keep it and lose their debt. | Write-off now requires zero supply in every market. Test: `test_badDebt_notWrittenOffWhileBorrowerHoldsNonCollateralSupply` |
 | R-02 | Low | **Collateral griefing via `supply(onBehalfOf)`.** A third party could supply 1 wei on behalf of a victim and auto-enable it as collateral, making the victim's health checks depend on another price feed (a stale feed would then block their borrows and withdrawals). | Auto-enable only when `onBehalfOf == msg.sender`. Test: `test_supply_onBehalfOf` |
 | R-03 | Low | **Dust collateral could block cleanup.** If a borrower's remaining collateral was worth less than 1 unit of the debt token, `repaid` rounded to 0 and the liquidation reverted, leaving the bad debt stuck. | Liquidation now allows `repaid == 0` when sweeping all remaining collateral, after which the debt is written off. |
-| R-04 | Info | Invariant testing initially reported accounts with HF < 1 and no price drop. Root cause: the test's assumption was wrong (interest and *rises* in a debt asset's price also lower HF). The invariant was corrected to "no successful borrow or withdraw leaves a user over their LTV limit". | Test fix only |
+| R-04 | Medium | **`LendingPool` was over the 24 KB contract size limit (EIP-170)** because it deployed each ALToken itself. Unit tests don't enforce the limit, so this only showed up when deploying to a real node (Anvil). It would have made mainnet-style deployment impossible. | ALTokens are now deployed separately and `listMarket` checks they point at this pool, the right asset and decimals, and have no supply. Pool is now 20.2 KB. CI runs `forge build --sizes`. Test: `test_listMarketRejectsMismatchedALToken` |
+| R-05 | Info | Invariant testing initially reported accounts with HF < 1 and no price drop. Root cause: the test's assumption was wrong (interest and *rises* in a debt asset's price also lower HF). The invariant was corrected to "no successful borrow or withdraw leaves a user over their LTV limit". | Test fix only |
 
 ## 3. Attack vectors considered
 
@@ -30,7 +31,7 @@ Type: internal self-review plus automated testing. **This is not a professional 
 | Stale state (acting before interest accrues) | Every state-changing function calls `_accrue(asset)` first. Health checks on other markets use `_simulate`, which applies pending interest in memory. | `test_interestMatchesRateModel`, `testFuzz_debtGrowsAndFullRepayClears` |
 | Oracle: stale, zero/negative, incomplete round | `ChainlinkOracle.getPrice` reverts | `ChainlinkOracle.t.sol` |
 | Oracle: feed clamped at min/max answer during a crash (LUNA) | Per-feed admin `minPrice`/`maxPrice`; out-of-range reverts instead of pricing | `test_revertsOutsideSanityBounds` |
-| L2 sequencer downtime | Chainlink sequencer uptime feed with a 1h grace period after restart; price reads revert while down | `test_sequencerDownBlocksPrices`, `test_sequencerGracePeriod`, `test_sequencerDownBlocksBorrow` |
+| L2 sequencer downtime | Chainlink sequencer uptime feed with a 1h grace period after restart; price reads revert while down. Chainlink only publishes this feed on mainnets (Arbitrum One: `0xFdB631F5EE196F0ed6FAa767959853A9F217697D`), so the Arbitrum Sepolia deployment uses a mock that `script/SetSequencerStatus.s.sol` can flip for demos | `test_sequencerDownBlocksPrices`, `test_sequencerGracePeriod`, `test_sequencerDownBlocksBorrow` |
 | Rounding | Shares minted and collateral valued round down; shares burned, debt and debt value round up | `testFuzz_supplyWithdrawRoundTripNeverProfits`, `invariant_suppliersClaimsAreBacked` |
 | First-depositor inflation (donation) attack | Market cash tracked internally (donations ignored) plus a virtual share and asset | `test_inflationAttackDoesNotWork` |
 | Bad debt blocking liquidations | If collateral < repay + bonus, liquidator takes all of it and repays less; leftover debt is written off against reserves, then suppliers | `test_badDebt_*` |
@@ -59,6 +60,6 @@ Type: internal self-review plus automated testing. **This is not a professional 
 
 ## 6. Tooling
 
-- Foundry unit, fuzz (1,000 runs; 5,000 in CI) and invariant tests. 85 tests. Coverage on `src/`: 99.7% lines, 95.5% statements, 72.7% branches, 100% functions.
+- Foundry unit, fuzz (1,000 runs; 5,000 in CI) and invariant tests. 88 tests. Coverage on `src/`: 99.7% lines, 95.5% statements, 72.7% branches, 100% functions.
 - `forge lint` is clean. The `block-timestamp` lint is disabled on purpose because timestamps are only used for interest, staleness and the faucet.
 - Slither runs in CI (`.github/workflows/main.yml`, fails on medium or higher). Results go in this section once CI has run.

@@ -14,6 +14,14 @@ remappings = [
 ]
 fs_permissions = [{ access = "read-write", path = "./deployments" }]
 
+[rpc_endpoints]
+localhost = "http://127.0.0.1:8545"
+arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
+
+# Etherscan API v2: one key from etherscan.io works for Arbiscan too.
+[etherscan]
+arbitrum_sepolia = { key = "${ETHERSCAN_API_KEY}", chain = 421614 }
+
 [fuzz]
 runs = 1000
 

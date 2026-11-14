@@ -162,6 +162,7 @@ contract LendingPool is ILendingPool, Ownable2Step, Pausable, ReentrancyGuard {
     error HealthyPosition();
     error SelfLiquidation();
     error OnlyALToken();
+    error InvalidALToken();
 
     // ---------------------------------------------------------------------
     // Constructor
@@ -333,20 +334,21 @@ contract LendingPool is ILendingPool, Ownable2Step, Pausable, ReentrancyGuard {
     // Admin
     // ---------------------------------------------------------------------
 
-    /// @notice List a new market and deploy its ALToken.
-    function listMarket(address asset, address irm, AssetConfig calldata config)
-        external
-        onlyOwner
-        returns (address alToken)
-    {
-        if (asset == address(0) || irm == address(0)) revert ZeroAddress();
+    /// @notice List a new market with its pre-deployed ALToken.
+    /// @dev The ALToken is deployed separately (keeps this contract under the 24 KB size limit) and must
+    ///      point at this pool and `asset`, match its decimals and have no supply yet.
+    function listMarket(address asset, address alToken, address irm, AssetConfig calldata config) external onlyOwner {
+        if (asset == address(0) || alToken == address(0) || irm == address(0)) revert ZeroAddress();
         if (_markets[asset].listed) revert MarketAlreadyListed(asset);
         if (_assets.length >= MAX_ASSETS) revert TooManyMarkets();
         _validateConfig(config);
 
         uint8 dec = IERC20Metadata(asset).decimals();
-        string memory sym = IERC20Metadata(asset).symbol();
-        ALToken token = new ALToken(asset, dec, string.concat("AagesLend ", sym), string.concat("al", sym));
+        ALToken token = ALToken(alToken);
+        if (
+            token.pool() != address(this) || token.underlying() != asset || token.decimals() != dec
+                || token.totalSupply() != 0
+        ) revert InvalidALToken();
 
         Market storage m = _markets[asset];
         m.listed = true;
@@ -360,7 +362,6 @@ contract LendingPool is ILendingPool, Ownable2Step, Pausable, ReentrancyGuard {
 
         emit MarketListed(asset, address(token), irm);
         emit AssetConfigUpdated(asset, config);
-        return address(token);
     }
 
     function setAssetConfig(address asset, AssetConfig calldata config) external onlyOwner {

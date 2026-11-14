@@ -56,9 +56,12 @@ abstract contract BaseTest is Test {
         volatileIrm = new InterestRateModel(0, 0.07e18, 3e18, 0.8e18);
 
         pool = new LendingPool(admin, address(oracle));
-        alUsdc = ALToken(pool.listMarket(address(usdc), address(stableIrm), _cfg(8000, 8500, 500, 1000)));
-        alWeth = ALToken(pool.listMarket(address(weth), address(volatileIrm), _cfg(7500, 8000, 500, 1500)));
-        alWbtc = ALToken(pool.listMarket(address(wbtc), address(volatileIrm), _cfg(7000, 7500, 1000, 2000)));
+        alUsdc = _newALToken(usdc);
+        alWeth = _newALToken(weth);
+        alWbtc = _newALToken(wbtc);
+        pool.listMarket(address(usdc), address(alUsdc), address(stableIrm), _cfg(8000, 8500, 500, 1000));
+        pool.listMarket(address(weth), address(alWeth), address(volatileIrm), _cfg(7500, 8000, 500, 1500));
+        pool.listMarket(address(wbtc), address(alWbtc), address(volatileIrm), _cfg(7000, 7500, 1000, 2000));
         vm.stopPrank();
 
         address[4] memory users = [alice, bob, carol, admin];
@@ -69,6 +72,13 @@ abstract contract BaseTest is Test {
             wbtc.approve(address(pool), type(uint256).max);
             vm.stopPrank();
         }
+    }
+
+    function _newALToken(MockERC20 token) internal returns (ALToken) {
+        string memory sym = token.symbol();
+        return new ALToken(
+            address(pool), address(token), token.decimals(), string.concat("AagesLend ", sym), string.concat("al", sym)
+        );
     }
 
     function _cfg(uint16 ltv, uint16 lt, uint16 bonus, uint16 rf)

@@ -12,9 +12,25 @@ contract SecurityTest is BaseTest {
     /// Old bug 1: anyone could whitelist their own worthless token.
     function test_onlyOwnerCanListMarkets() public {
         MockERC20 junk = new MockERC20("Junk", "JUNK", 18, 0);
+        ALToken alJunk = _newALToken(junk);
         vm.prank(bob);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, bob));
-        pool.listMarket(address(junk), address(stableIrm), _cfg(8000, 8500, 500, 1000));
+        pool.listMarket(address(junk), address(alJunk), address(stableIrm), _cfg(8000, 8500, 500, 1000));
+    }
+
+    function test_listMarketRejectsMismatchedALToken() public {
+        MockERC20 t = new MockERC20("T", "T", 18, 0);
+        ALToken wrongPool = new ALToken(address(0xBEEF), address(t), 18, "x", "x");
+        ALToken wrongAsset = new ALToken(address(pool), address(weth), 18, "x", "x");
+        ALToken wrongDecimals = new ALToken(address(pool), address(t), 6, "x", "x");
+        vm.startPrank(admin);
+        vm.expectRevert(LendingPool.InvalidALToken.selector);
+        pool.listMarket(address(t), address(wrongPool), address(stableIrm), _cfg(0, 0, 0, 0));
+        vm.expectRevert(LendingPool.InvalidALToken.selector);
+        pool.listMarket(address(t), address(wrongAsset), address(stableIrm), _cfg(0, 0, 0, 0));
+        vm.expectRevert(LendingPool.InvalidALToken.selector);
+        pool.listMarket(address(t), address(wrongDecimals), address(stableIrm), _cfg(0, 0, 0, 0));
+        vm.stopPrank();
     }
 
     /// Old bug 2+3: borrow at a 1:1 price, then withdraw the collateral and walk away.
@@ -132,13 +148,15 @@ contract SecurityTest is BaseTest {
     function test_cannotListTwiceOrPastMax() public {
         vm.startPrank(admin);
         vm.expectRevert(abi.encodeWithSelector(LendingPool.MarketAlreadyListed.selector, address(usdc)));
-        pool.listMarket(address(usdc), address(stableIrm), _cfg(8000, 8500, 500, 1000));
+        pool.listMarket(address(usdc), address(alUsdc), address(stableIrm), _cfg(8000, 8500, 500, 1000));
         for (uint256 i = 3; i < pool.MAX_ASSETS(); ++i) {
-            pool.listMarket(address(new MockERC20("T", "T", 18, 0)), address(stableIrm), _cfg(0, 0, 0, 0));
+            MockERC20 t = new MockERC20("T", "T", 18, 0);
+            pool.listMarket(address(t), address(_newALToken(t)), address(stableIrm), _cfg(0, 0, 0, 0));
         }
-        address extra = address(new MockERC20("T", "T", 18, 0));
+        MockERC20 extra = new MockERC20("T", "T", 18, 0);
+        ALToken alExtra = _newALToken(extra);
         vm.expectRevert(LendingPool.TooManyMarkets.selector);
-        pool.listMarket(extra, address(stableIrm), _cfg(0, 0, 0, 0));
+        pool.listMarket(address(extra), address(alExtra), address(stableIrm), _cfg(0, 0, 0, 0));
         vm.stopPrank();
     }
 
