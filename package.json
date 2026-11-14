@@ -3,23 +3,20 @@
   "version": "0.2.0",
   "description": "AagesLend: an over-collateralized lending protocol (supply, borrow, liquidate) with a React frontend",
   "private": true,
-  "type": "module",
   "license": "MIT",
   "scripts": {
-    "compile": "hardhat compile",
-    "test": "hardhat test",
-    "test:gas": "cross-env REPORT_GAS=true hardhat test",
-    "coverage": "hardhat coverage",
-    "node": "hardhat node",
-    "clean": "hardhat clean"
-  },
-  "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
-    "cross-env": "^7.0.3",
-    "dotenv": "^17.4.2"
+    "build": "forge build",
+    "test": "forge test",
+    "test:gas": "forge test --gas-report",
+    "coverage": "forge coverage --report summary",
+    "fmt": "forge fmt",
+    "snapshot": "forge snapshot"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.6.1"
+    "@openzeppelin/contracts": "5.6.1"
+  },
+  "devDependencies": {
+    "forge-std": "github:foundry-rs/forge-std#v1.9.7"
   },
   "engines": {
     "node": ">=20"
