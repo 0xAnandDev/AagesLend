@@ -1,32 +1,42 @@
-# Environment
+# Secrets
 .env
-.env.local
-.env.*.local
-.env.production.local
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
 
 # Dependencies
 node_modules/
-frontend/node_modules/
 npm-debug.log*
 
-# Build
-build/
-dist/
+# Hardhat
 artifacts/
 cache/
-
-# Hardhat
 coverage/
+coverage.json
 typechain/
 typechain-types/
+ignition/deployments/chain-31337/
 
-# Frontend build
-frontend/dist/
+# Foundry
+out/
+cache_forge/
+broadcast/*/31337/
 
-# IDE
+# Builds
+build/
+dist/
+
+# Editors / OS
 .vscode/
 .idea/
 *.swp
-
-# OS
 .DS_Store
+Thumbs.db
+
+# Local scratch
+*.scratch.*
+
+# Patches delivered for manual apply
+.patches/
