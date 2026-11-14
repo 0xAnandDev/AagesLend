@@ -26,6 +26,18 @@ for (const name of contracts) {
 }
 writeFileSync(join(target, "abis.ts"), abis);
 
+// The indexer and keeper only need the pool ABI.
+const poolArtifact = JSON.parse(readFileSync(join(outDir, "LendingPool.sol", "LendingPool.json"), "utf8"));
+for (const dir of ["indexer", "keeper"]) {
+  const abiDir = join(root, dir, "abis");
+  if (!existsSync(join(root, dir))) continue;
+  mkdirSync(abiDir, { recursive: true });
+  writeFileSync(
+    join(abiDir, "LendingPoolAbi.ts"),
+    `${header}\nexport const LendingPoolAbi = ${JSON.stringify(poolArtifact.abi, null, 2)} as const;\n`,
+  );
+}
+
 const deploymentsDir = join(root, "deployments");
 const deployments = {};
 if (existsSync(deploymentsDir)) {
