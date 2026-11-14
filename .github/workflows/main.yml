@@ -2,12 +2,33 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "rebuild"]
   pull_request:
     branches: ["main"]
 
 jobs:
   contracts:
+    name: Contracts (build, lint, test, coverage)
+    runs-on: ubuntu-latest
+    env:
+      FOUNDRY_PROFILE: ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.7.1
+      - run: forge fmt --check
+      - run: forge build --sizes
+      - run: forge test -vvv
+      - run: forge coverage --report summary --report lcov --no-match-coverage "(test|script|mocks)"
+
+  slither:
+    name: Static analysis (Slither)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,10 +37,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx hardhat compile
-      - run: npx hardhat test
+      - uses: crytic/slither-action@v0.4.1
+        with:
+          fail-on: medium
+          slither-config: slither.config.json
 
   frontend:
+    name: Frontend build
     runs-on: ubuntu-latest
     defaults:
       run:
