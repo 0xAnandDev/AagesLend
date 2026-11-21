@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiX, FiGithub, FiTwitter, FiMail } from 'react-icons/fi';
 import { FaDiscord } from 'react-icons/fa';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import Galaxy from '../components/Galaxy/Galaxy';
 import SpecularButton from '../components/SpecularButton/SpecularButton';
+import LandingMarkets from '../components/LandingMarkets';
 
 const LogoA = () => (
   <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-1">
@@ -24,15 +24,6 @@ const navLinks = [
   { id: 'connect', label: 'Connect' },
 ];
 
-const mockMarketData = [
-  { name: 'Mon', ETH: 3100, USDC: 1.00 },
-  { name: 'Tue', ETH: 3150, USDC: 1.00 },
-  { name: 'Wed', ETH: 3120, USDC: 1.00 },
-  { name: 'Thu', ETH: 3200, USDC: 1.00 },
-  { name: 'Fri', ETH: 3250, USDC: 1.00 },
-  { name: 'Sat', ETH: 3300, USDC: 1.00 },
-  { name: 'Sun', ETH: 3280, USDC: 1.00 },
-];
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -188,7 +179,7 @@ const LandingPage = () => {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-[#121212] mb-8">
               <div className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]"></div>
-              <span className="text-sm font-medium text-gray-300">Live on Sepolia Testnet</span>
+              <span className="text-sm font-medium text-gray-300">Live on Arbitrum Sepolia</span>
             </div>
             
             {/* Headline */}
@@ -315,7 +306,7 @@ const LandingPage = () => {
                 { title: 'Overcollateralization', desc: 'Loans require collateral greater than the borrowed value.' },
                 { title: 'Liquidation System', desc: 'Positions are automatically adjusted if risk thresholds are exceeded.' },
                 { title: 'Smart Contract Execution', desc: 'All operations are governed by on-chain logic.' },
-                { title: 'Testnet Environment', desc: 'Currently deployed on Sepolia for safe experimentation.' },
+                { title: 'Oracle Safety', desc: 'Chainlink prices with staleness, bounds and L2 sequencer uptime checks. Deployed on Arbitrum Sepolia.' },
               ].map((block, idx) => (
                 <div key={idx} className="bg-[#121212] p-8 rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/20 hover:shadow-[0_0_30px_rgba(16,185,129,0.1)] hover:-translate-y-1 group">
                   <h3 className="text-xl font-semibold mb-3 text-green-400 group-hover:text-green-300 transition-colors">{block.title}</h3>
@@ -331,62 +322,9 @@ const LandingPage = () => {
           <div className="max-w-[1200px] mx-auto px-5 md:px-8">
             <h2 className="text-[32px] md:text-[48px] font-bold mb-6 text-center tracking-tight">Market Overview</h2>
             <p className="text-gray-400 text-center max-w-3xl mx-auto mb-16 text-[18px] leading-relaxed">
-              Track key protocol metrics and asset data in real time.
+              Live protocol metrics, read straight from the contracts.
             </p>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-               <div className="bg-[#121212] p-8 rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/20 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                 <h4 className="text-white mb-2 font-medium">Total Supply</h4>
-                 <p className="text-4xl font-bold text-white">$12.4M</p>
-               </div>
-               <div className="bg-[#121212] p-8 rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/20 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                 <h4 className="text-white mb-2 font-medium">Total Borrowed</h4>
-                 <p className="text-4xl font-bold text-white">$4.1M</p>
-               </div>
-               <div className="bg-[#121212] p-8 rounded-2xl border border-white/5 transition-all duration-300 hover:border-white/20 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-                 <h4 className="text-white mb-2 font-medium">Available Liquidity</h4>
-                 <p className="text-4xl font-bold text-white">$8.3M</p>
-               </div>
-            </div>
-            
-            <div className="bg-[#121212] p-6 md:p-10 rounded-3xl border border-white/5 transition-all duration-300 hover:border-white/20 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)]">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-xl md:text-2xl font-semibold text-white">Asset Prices (ETH)</h3>
-                <div className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-sm font-medium text-gray-300">
-                  Live Data
-                </div>
-              </div>
-              
-              <div className="h-[350px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={mockMarketData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
-                    <XAxis dataKey="name" stroke="#ffffff50" axisLine={false} tickLine={false} dy={10} />
-                    <YAxis stroke="#ffffff50" axisLine={false} tickLine={false} domain={['dataMin - 50', 'dataMax + 50']} tickFormatter={(value) => `$${value}`} dx={-10} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#121212', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
-                      itemStyle={{ color: '#fff' }}
-                      formatter={(value) => [`$${value}`, 'Price']}
-                    />
-                    <Line type="monotone" dataKey="ETH" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#121212', stroke: '#3b82f6', strokeWidth: 2 }} activeDot={{ r: 6, fill: '#3b82f6', stroke: '#fff', strokeWidth: 2 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-              
-              <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 bg-[#1a1a1a] rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                  <span className="text-gray-400 block mb-2 font-medium">ETH Supply APY</span>
-                  <span className="text-3xl font-bold text-green-400">3.45%</span>
-                </div>
-                <div className="p-6 bg-[#1a1a1a] rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                  <span className="text-gray-400 block mb-2 font-medium">USDC Supply APY</span>
-                  <span className="text-3xl font-bold text-green-400">8.21%</span>
-                </div>
-                <div className="p-6 bg-[#1a1a1a] rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
-                  <span className="text-gray-400 block mb-2 font-medium">DAI Borrow APY</span>
-                  <span className="text-3xl font-bold text-orange-400">10.05%</span>
-                </div>
-              </div>
-            </div>
+            <LandingMarkets />
           </div>
         </section>
 
@@ -399,11 +337,11 @@ const LandingPage = () => {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
               {[
-                { title: 'Solidity', desc: 'Smart contract logic' },
-                { title: 'Hardhat', desc: 'Development and testing' },
-                { title: 'React + Vite', desc: 'Frontend interface' },
-                { title: 'Ethers.js', desc: 'Blockchain interaction' },
-                { title: 'Chainlink', desc: 'Price feeds' },
+                { title: 'Solidity + Foundry', desc: 'Contracts, fuzz and invariant tests' },
+                { title: 'Chainlink', desc: 'Price and sequencer feeds' },
+                { title: 'wagmi + viem', desc: 'Typed chain access' },
+                { title: 'RainbowKit', desc: 'Wallet connection' },
+                { title: 'Ponder', desc: 'Event indexer' },
               ].map((block, idx) => (
                 <div key={idx} className="bg-[#121212] p-8 rounded-2xl border border-white/5 text-center transition-all duration-300 hover:border-white/20 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:-translate-y-1">
                   <h3 className="text-lg font-semibold mb-3 text-white">{block.title}</h3>

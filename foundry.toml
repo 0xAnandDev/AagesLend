@@ -1,0 +1,50 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["node_modules"]
+solc_version = "0.8.24"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+remappings = [
+  "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+  "forge-std/=node_modules/forge-std/src/",
+]
+fs_permissions = [{ access = "read-write", path = "./deployments" }]
+
+[rpc_endpoints]
+localhost = "http://127.0.0.1:8545"
+arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
+
+# Etherscan API v2: one key from etherscan.io works for Arbiscan too.
+[etherscan]
+arbitrum_sepolia = { key = "${ETHERSCAN_API_KEY}", chain = 421614 }
+
+[fuzz]
+runs = 1000
+
+[invariant]
+runs = 256
+depth = 64
+fail_on_revert = false
+
+[profile.ci.fuzz]
+runs = 5000
+
+[profile.ci.invariant]
+runs = 512
+depth = 100
+
+[lint]
+# block.timestamp is used on purpose for interest accrual, oracle staleness and the faucet cooldown.
+exclude_lints = ["block-timestamp"]
+ignore = ["test/**/*.sol", "script/**/*.sol"]
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+number_underscore = "thousands"
